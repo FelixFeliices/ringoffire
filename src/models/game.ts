@@ -23,4 +23,12 @@ export class Game {
       ];
     }
   }
+  public cleanGame() {
+    return {
+      players: this.players || [],
+      stack: this.stack || [],
+      playedCards: this.playedCards || [],
+      currentPlayer: this.currentPlayer || 0,
+    };
+  }
 }

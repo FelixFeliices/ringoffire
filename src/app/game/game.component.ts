@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Game } from '../../models/game';
 import { PlayerComponent } from '../player/player.component';
 
@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogAddPlayerComponent } from '../dialog-add-player/dialog-add-player.component';
 import { GameInfoComponent } from '../game-info/game-info.component';
+import { Firestore } from '@angular/fire/firestore';
+import { collection, collectionData, addDoc } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-game',
@@ -25,18 +27,35 @@ import { GameInfoComponent } from '../game-info/game-info.component';
 export class GameComponent implements OnInit {
   pickCardAnimation = false;
   currentCard: string | undefined = '';
+  test: string = 'test';
   game: Game | undefined;
+  firestore: Firestore = inject(Firestore);
 
   constructor(public dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.newGame();
+
+    collectionData(this.getGameRef()).subscribe((game: any) => {
+      console.log('Game update', game);
+    });
   }
 
-  newGame() {
+  getGameRef() {
+    return collection(this.firestore, 'games');
+  }
+
+  async newGame() {
     this.game = new Game();
+    await this.addGame();
+    console.log(this.game);
   }
 
+  async addGame() {
+    await addDoc(this.getGameRef(), this.game?.cleanGame()).catch((err) => {
+      console.error('Error adding document:', err);
+    });
+  }
   takeCard() {
     if (!this.pickCardAnimation && this.game) {
       let card = this.game?.stack.pop() ?? '';
